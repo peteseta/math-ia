@@ -9,7 +9,7 @@
 #show figure: set block(spacing: 2em)
 
 // numbering
-#set heading(numbering: "1.1 ")
+#set heading(numbering: "1.1 |")
 #set math.equation(numbering: "(1)")
 
 // font
@@ -75,7 +75,7 @@ scatterplot:
 
 #figure(
   image("figures/scatterplot.png", width: 70%),
-  caption: [Scatterplot of car data @rathodFishMarket2023],
+  caption: [Scatterplot of car data @elmetwallyCarInformationDataset2023],
 )
 
 From the scatterplot, we observe a negative exponential relationship between the
@@ -92,11 +92,11 @@ There are many types of loss functions, which depend on the problem and type of
 data. This includes "square of Euclidean distance, cross-entropy, contrast loss,
 hinge loss, information gain," etc @sunSurveyOptimizationMethods2019.
 
-For an exponential regression, a common loss function is the mean squared error,
-defined as $ "MSE" = 1/n sum_(i=1)^n (y_i - f(x_i))^2 $ <generic_loss_function> where $y_i$ is
-the $i^"th"$ actual value of the variable we are trying to predict ("ground
-truth"), $f(x_i)$ is the predicted value of $y_i$ given the $i^"th"$ value of
-the independent variable $x$, and $n$ is the number of data points. In this
+A common loss function is the sum of squared residuals, defined as
+$ "RSS" = sum_(i=1)^n (y_i - f(x_i))^2 $ <generic_loss_function>
+where $y_i$ is the $i^"th"$ actual value of the variable we are trying to
+predict ("ground truth"), $f(x_i)$ is the predicted value of $y_i$ given the $i^"th"$ value
+of the independent variable $x$, and $n$ is the number of data points. In this
 case, $y$ is the fuel efficiency of the car, $x$ is the horsepower rating of the
 car, and $f(x)$ is the predicted fuel efficiency of the car given its horsepower
 rating.
@@ -125,10 +125,10 @@ current point.
     Since this is an exponential regression task, the function $f(x)$ is a line with
     equation $f(x) = a dot e^(b (x - h)) + k$.
 
-    Each squared error comes from the difference between the actual value of $y$ and
+    Each squared residual comes from the difference between the actual value of $y$ and
     the predicted value of $y$, $f(x_i)$. Therefore, the loss function can be
     rewritten as
-    $ "MSE" = 1/n sum_(i=1)^n (y_i - a dot e^(b (x - h)) - k)^2 $ <linear_loss_function>
+    $ "RSS" = sum_(i=1)^n (y_i - a dot e^(b (x - h)) - k)^2 $ <exp_loss_function>
 
     Calculating the summation, we can substitute $y_i$ and $x_i$ with each
     datapoint's value, leaving the loss function in terms of the parameters a, b, h,
@@ -142,9 +142,9 @@ current point.
   ],
   colspanx(2)[*Initialization*],
   [
-    - We define an initial solution, where we choose random values for the parameters $m$ (slope)
-      and $b$ (y-intercept).
-    - Let's call them $m_0$ and $b_0$.
+    We first define an initial solution (a *guess*), where we choose random values
+    for the parameters $a$ (scaling factor), $b$ (growth factor), $h$ (horizontal
+    shift), and $k$ (vertical shift). Let's call these $a_0$, $b_0$, $h_0$, and $k_0$.
   ],
   [
     - Let's set the intercept to 0 and the slope to 1.
@@ -215,32 +215,27 @@ current point.
   and intercept were $m = 0.0006$ and $b = 0.0001$.
 - The following is a sampling of the algorithm's progression:
 
-== Variants
-- A variant of gradient descent exists called stochastic gradient descent, which
-  is used when the dataset is too large to be processed in one iteration with
-  sufficient speed.
-- In stochastic gradient descent, a randomly selected subset of the data at every
-  step is used to calculate the new paramenets, rather than the full dataset.
-- This reduces the computation time needed to caluclate the derivatives of the
-  loss function, as fewer datapoints are used in the summation of the loss
-  function.
-
-== Limitations
 - Gradient descent has limitations, especially in cases of non-convex loss
   functions or when the data has multiple local minima.
 
+== Variants
+A variant of gradient descent exists called stochastic gradient descent, which
+is used when the dataset is too large to be processed in one iteration with
+sufficient speed. In stochastic gradient descent, a randomly selected subset of
+the data at every step is used to calculate the new parameters, rather than the
+full dataset. This reduces the computation time needed to calculate the
+derivatives of the loss function, as fewer data points are used in the summation
+of the loss function. However, the scale of our problem is feasible for the full
+gradient descent algorithm.
+
 = Simulated annealing (SA)
-- Simulated annealing is a probabilistic technique for approximating the global
-  optimum of a complex function. It is particularly useful in situations where the
-  function may have several local minima, making traditional gradient-based
-  methods less effective.
-- In the context of optimization, SA uses the concept of 'temperature' to control
-  the search process. At high temperatures, the algorithm is more likely to accept
-  changes that increase the function value (or 'energy'), allowing it to explore a
-  wide range of solutions. As the temperature decreases, the algorithm becomes
-  more selective, focusing on refining and improving the current solution. This
-  process helps SA to potentially escape local minima and converge towards a
-  global minimum.
+Simulated annealing is a probabilistic technique that uses the concept of 'temperature'
+to control the search process. At high temperatures, the algorithm is more
+likely to accept changes that increase the function value (or 'energy'),
+allowing it to explore a wide range of solutions. As the temperature decreases,
+the algorithm becomes more selective, focusing on refining and improving the
+current solution. This process helps SA to potentially escape local minima and
+converge towards a global minimum.
 
 == The simulated annealing algorithm
 #gridx(
@@ -315,8 +310,72 @@ current point.
 - The following is a sampling of the algorithm's progression:
 
 = Analysis <analysis>
-- Comparing the two methods, we see that
-- Comparing to the analytical solution.
+To evaluate the performance of the two optimization algorithms, we will compare
+their results to an analytical solution calculated using the Levenberg-Marquardt
+algorithm, a method for solving non-linear least squares problems. This
+algorithm resulted in the following theoretical best-fit line for the data and
+will be used as a benchmark for the performance of the two algorithms:
+
+#figure(
+  image("figures/levenberg.png", width: 70%),
+  caption: [Analytical line of best fit],
+)
+
+The final iteration of each algorithm resulted in the following values for the
+equation:
+#figure(
+  tablex(
+    columns: (auto, 5em, 5em, 5em, 5em),
+    inset: 8pt,
+    [*Algorithm*],
+    [*a*],
+    [*b*],
+    [*h*],
+    [*k*],
+    [Gradient descent],
+    [0.0006],
+    [0.0001],
+    [0],
+    [0],
+    [Simulated annealing],
+    [0.0006],
+    [0.0001],
+    [0],
+    [0],
+    [Analytical solution (Levenberg-Marquardt)],
+    [0.0006],
+    [0.0001],
+    [0],
+    [0],
+  ),
+  caption: [Final values for the parameters of the equation],
+  kind: table,
+)
+
+Which when compared to the analytical solution, suggests that on this problem,
+gradient descent performed better than simulated annealing.
+#figure(tablex(
+  columns: (auto, 5em, 5em, 5em, 5em, auto),
+  inset: 8pt,
+  [*Algorithm*],
+  [*$Delta a$*],
+  [*$Delta b$*],
+  [*$Delta h$*],
+  [*$Delta k$*],
+  [*Average error ($macron(Delta)$)*],
+  [Gradient descent],
+  [0.0006],
+  [0.0001],
+  [0],
+  [0],
+  [0],
+  [Simulated annealing],
+  [0.0006],
+  [0.0001],
+  [0],
+  [0],
+  [0],
+), caption: [Error in parameter values], kind: table)
 
 = Conclusion
 #lorem(100)
